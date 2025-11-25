@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TU Foodies | Home</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Montserrat:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: "Poppins", sans-serif;
+      color: #333;
+      background: #fff;
+      overflow-x: hidden;
+    }
+
+    /* Navbar */
+    .navbar {
+      position: fixed;
+      width: 100%;
+      top: 0;
+      left: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2rem;
+      background: transparent;
+      transition: background .4s ease, box-shadow .4s ease;
+    }
+
+    .navbar.scrolled {
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .1);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: "Montserrat", sans-serif;
+      font-size: 1.8rem;
+      color: #fff;
+      text-decoration: none;
+      font-weight: 700;
+      transition: color .3s ease;
+    }
+
+    .logo img {
+      height: 40px;
+      width: 40px;
+      filter: brightness(100%);
+    }
+
+    .navbar.scrolled .logo {
+      color: #e63946;
+    }
+
+    .navbar.scrolled .logo img {
+      filter: brightness(0) invert(0);
+    }
+
+    .nav-links {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: #fff;
+      font-weight: 500;
+      transition: color .3s ease;
+    }
+
+    .navbar.scrolled .nav-links a {
+      color: #333;
+    }
+
+    .nav-links a:hover,
+    .nav-links a.active {
+      color: #ffb703;
+    }
+
+    /* User Menu + Cart */
+    .user-menu {
+      position: relative;
+    }
+
+    .user-icon {
+      font-size: 26px;
+      color: #fff;
+      cursor: pointer;
+      transition: color .3s;
+    }
+
+    .navbar.scrolled .user-icon {
+      color: #333;
+    }
+
+    .dropdown {
+      position: absolute;
+      top: 40px;
+      right: 0;
+      background: rgba(255, 255, 255, .95);
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      display: none;
+      flex-direction: column;
+      width: 140px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, .1);
+    }
+
+    .dropdown a {
+      padding: .7rem 1rem;
+      color: #333;
+      text-decoration: none;
+      transition: background .2s;
+    }
+
+    .dropdown a:hover {
+      background: #ffb703;
+      color: #000;
+    }
+
+    .user-menu.active .dropdown {
+      display: flex;
+    }
+
+    .cart-btn {
+      position: relative;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: #fff;
+      font-size: 1.3rem;
+      transition: color .3s;
+    }
+
+    .navbar.scrolled .cart-btn {
+      color: #333;
+    }
+
+    .cart-badge {
+      position: absolute;
+      top: -6px;
+      right: -10px;
+      background: #e63946;
+      color: #fff;
+      border-radius: 50%;
+      padding: 3px 7px;
+      font-size: .75rem;
+      font-weight: 600;
+    }
+
+    /* Cart Drawer */
+    .cart-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      height: 100%;
+      width: 360px;
+      max-width: 90vw;
+      background: #fff;
+      box-shadow: -10px 0 40px rgba(0, 0, 0, .1);
+      transform: translateX(105%);
+      transition: .3s;
+      display: flex;
+      flex-direction: column;
+      z-index: 1200;
+    }
+
+    .cart-drawer.open {
+      transform: translateX(0);
+    }
+
+    .cart-head {
+      padding: 1rem;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .cart-body {
+      flex: 1;
+      overflow: auto;
+      padding: 1rem;
+    }
+
+    .cart-item {
+      display: flex;
+      gap: .7rem;
+      margin-bottom: 1rem;
+      align-items: center;
+    }
+
+    .cart-item img {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    .cart-item .meta {
+      flex: 1;
+    }
+
+    .cart-item .meta .name {
+      font-weight: 600;
+    }
+
+    .cart-item .meta .small {
+      color: #777;
+      font-size: .85rem;
+    }
+
+    /* Clean + and − Buttons */
+    .cart-item button {
+      all: unset;
+      cursor: pointer;
+      color: #e63946;
+      font-weight: bold;
+      font-size: 1.1rem;
+      margin: 0 6px;
+      transition: color 0.3s ease, transform 0.2s ease;
+    }
+
+    .cart-item button:hover {
+      color: #d62839;
+      transform: scale(1.2);
+    }
+
+    .cart-footer {
+      border-top: 1px solid #eee;
+      padding: 1rem;
+    }
+
+    .checkout-btn {
+      width: 100%;
+      padding: .8rem;
+      background: #e63946;
+      color: #fff;
+      border: 0;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .empty {
+      text-align: center;
+      color: #888;
+      margin-top: 3rem;
+    }
+
+    /* Hero Section */
+    .hero {
+      height: 100vh;
+      background: url("https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1920&q=80") center/cover no-repeat fixed;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: #fff;
+      position: relative;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, .5);
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 600px;
+      padding: 2rem;
+    }
+
+    .hero-content h1 {
+      font-family: "Montserrat", sans-serif;
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      color: #fff;
+    }
+
+    .hero-content p {
+      font-size: 1.2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: .9rem 1.8rem;
+      background: #e63946;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: background .3s, transform .3s;
+    }
+
+    .btn:hover {
+      background: #d62839;
+      transform: scale(1.03);
+    }
+
+    /* Parallax Sections */
+    .parallax {
+      height: 70vh;
+      background-attachment: fixed;
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6);
+      font-size: 2rem;
+      font-weight: bold;
+    }
+
+    .menu-bg {
+      background-image: url("https://images.unsplash.com/photo-1551218808-94e220e084d2?auto=format&fit=crop&w=1920&q=80");
+    }
+
+    .offers-bg {
+      background-image: url("https://images.unsplash.com/photo-1615719413546-198b25453f85?auto=format&fit=crop&w=1920&q=80");
+    }
+
+    /* Content Sections */
+    .section {
+      padding: 4rem 2rem;
+      text-align: center;
+    }
+
+    .section h2 {
+      font-family: "Montserrat", sans-serif;
+      font-size: 2.2rem;
+      margin-bottom: 1rem;
+      color: #e63946;
+    }
+
+    /* Footer */
+    footer {
+      background: #333;
+      color: #fff;
+      padding: 2rem 0;
+      text-align: center;
+      font-size: .9rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar" id="navbar">
+    <a class="logo" href="#">
+      <img src="https://cdn-icons-png.flaticon.com/512/857/857681.png" alt="Logo">
+      TU Foodies
+    </a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#home" class="active">Home</a></li>
+      <li><a href="order.html">Menu</a></li>
+      <li><a href="#offers">Offers</a></li>
+      <li><a href="#contact">Contact</a></li>
+      <li class="user-menu" id="userMenu">
+        <i class="fa-solid fa-user-circle user-icon"></i>
+        <div class="dropdown" id="dropdownMenu">
+          <a href="signin.html">Log In</a>
+          <a href="signup.html">Sign Up</a>
+        </div>
+      </li>
+      <li>
+        <button class="cart-btn" id="cartBtn">
+          <i class="fa fa-shopping-cart"></i>
+          <span id="cartBadge" class="cart-badge" style="display:none;">0</span>
+        </button>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Hero -->
+  <section id="home" class="hero">
+    <div class="hero-content">
+      <h1>Welcome to TU Foodies</h1>
+      <p>Delicious. Fresh. Fast. Bringing Tezpur’s favorite meals right to your doorstep.</p>
+      <a href="order.html" class="btn">Order Now</a>
+    </div>
+  </section>
+
+  <!-- Parallax Menu -->
+  <div class="parallax menu-bg">Discover Our Menu</div>
+
+  <section class="section" id="menu">
+    <h2>Popular Dishes</h2>
+    <p>From aromatic tea to wholesome thalis, momos to biryani – TU Foodies has it all.</p>
+    <a href="order.html" class="btn" style="margin-top:1rem;">Explore Menu</a>
+  </section>
+
+  <!-- Parallax Offers -->
+  <div id="offers" class="parallax offers-bg">Exclusive Deals & Discounts</div>
+
+  <section class="section" id="contact">
+    <h2>Contact Us</h2>
+    <p>Email: support@tufoodies.com | Phone: +91 98765 43210</p>
+  </section>
+
+  <footer>
+    <p>&copy; 2025 TU Foodies. All Rights Reserved.</p>
+  </footer>
+
+  <!-- Cart Drawer -->
+  <aside id="cartDrawer" class="cart-drawer">
+    <div class="cart-head">
+      <strong>My Cart</strong>
+      <button id="closeCart" style="background:none;border:0;font-size:1.1rem"><i class="fa fa-times"></i></button>
+    </div>
+    <div id="cartBody" class="cart-body">
+      <div id="cartItems"></div>
+      <div id="cartEmpty" class="empty">Your cart is empty.</div>
+    </div>
+    <div class="cart-footer">
+      <div style="margin-bottom:.6rem;font-weight:600">Subtotal: <span id="subtotal">₹0</span></div>
+      <button id="checkoutBtn" class="checkout-btn">Checkout</button>
+    </div>
+  </aside>
+
+  <script>
+  const navbar = document.getElementById("navbar");
+  window.addEventListener("scroll", () =>
+    navbar.classList.toggle("scrolled", window.scrollY > 80)
+  );
+
+  // ===== USER MENU =====
+  const userMenu = document.getElementById("userMenu");
+  userMenu.addEventListener("click", e => {
+    e.stopPropagation();
+    userMenu.classList.toggle("active");
+  });
+  document.addEventListener("click", e => {
+    if (!userMenu.contains(e.target)) userMenu.classList.remove("active");
+  });
+
+  // ===== CART SYSTEM =====
+  const currentEmail = localStorage.getItem("tufoodies_email");
+  const CART_KEY = currentEmail ? `tu_cart_${currentEmail}` : "tu_cart";
+  
+  let cart = JSON.parse(localStorage.getItem(CART_KEY) || "{}");
+  const drawer = document.getElementById("cartDrawer");
+  const badge = document.getElementById("cartBadge");
+  const itemsEl = document.getElementById("cartItems");
+  const emptyEl = document.getElementById("cartEmpty");
+  const subtotalEl = document.getElementById("subtotal");
+
+  const save = () => localStorage.setItem(CART_KEY, JSON.stringify(cart));
+  const subtotal = () => Object.values(cart).reduce((a, b) => a + b.price * b.qty, 0);
+  const updateBadge = () => {
+    const count = Object.values(cart).reduce((a, b) => a + b.qty, 0);
+    badge.style.display = count ? "" : "none";
+    badge.textContent = count;
+  };
+
+  function renderCart() {
+    itemsEl.innerHTML = "";
+    const arr = Object.values(cart);
+    if (!arr.length) {
+      emptyEl.style.display = "block";
+      updateBadge();
+      subtotalEl.textContent = "₹0";
+      return;
+    }
+    emptyEl.style.display = "none";
+    updateBadge();
+    arr.forEach(it => {
+      const div = document.createElement("div");
+      div.className = "cart-item";
+      div.innerHTML = `
+        <img src="${it.img}" alt="">
+        <div class="meta">
+          <div class="name">${it.name}</div>
+          <div class="small">₹${it.price}</div>
+          <div style="margin-top:4px">
+            <button onclick="dec('${it.id}')">−</button>
+            <span>${it.qty}</span>
+            <button onclick="add('${it.id}')">+</button>
+          </div>
+        </div>`;
+      itemsEl.appendChild(div);
+    });
+    subtotalEl.textContent = "₹" + subtotal();
+  }
+
+  function add(id) {
+    if (cart[id]) cart[id].qty++;
+    save();
+    renderCart();
+  }
+
+  function dec(id) {
+    if (cart[id]) {
+      cart[id].qty--;
+      if (cart[id].qty <= 0) delete cart[id];
+    }
+    save();
+    renderCart();
+  }
+
+  document.getElementById("cartBtn").onclick = () => {
+    drawer.classList.add("open");
+    renderCart();
+  };
+  document.getElementById("closeCart").onclick = () => drawer.classList.remove("open");
+  document.getElementById("checkoutBtn").onclick = () =>
+    alert("Checkout – Subtotal: ₹" + subtotal());
+  renderCart();
+
+  // ===== USER GREETING + PROFILE UPDATE =====
+document.addEventListener("DOMContentLoaded", () => {
+  const user = localStorage.getItem("tufoodies_user");
+  const email = localStorage.getItem("tufoodies_email");
+  const photo = localStorage.getItem("tufoodies_photo");
+
+  const heroTitle = document.querySelector(".hero-content h1");
+  const userIcon = document.querySelector(".user-icon");
+  const dropdown = document.getElementById("dropdownMenu");
+
+  if (user) {
+    heroTitle.textContent = `Hi ${user} 👋, Welcome to TU Foodies!`;
+
+    // Create Gmail profile image
+    const avatarImg = document.createElement("img");
+    avatarImg.src = photo || "https://cdn-icons-png.flaticon.com/512/847/847969.png"; 
+    avatarImg.alt = "User Avatar";
+    avatarImg.style.width = "32px";
+    avatarImg.style.height = "32px";
+    avatarImg.style.borderRadius = "50%";
+    avatarImg.style.cursor = "pointer";
+    avatarImg.style.border = "2px solid #fff";
+    avatarImg.style.transition = "0.3s";
+
+    // Replace default icon with real Gmail avatar
+    userIcon.replaceWith(avatarImg);
+
+    dropdown.innerHTML = `
+      <a href="profile.html">
+        <i class="fa-solid fa-user" style="color:#333;margin-right:6px;"></i> ${user}
+      </a>
+      <a href="#" id="logoutBtn">
+        <i class="fa-solid fa-power-off" style="color:#e63946;margin-right:6px;"></i> Log Out
+      </a>
+    `;
+
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      localStorage.clear();
+      alert("👋 Logged out successfully!");
+      window.location.reload();
+    });
+  }
+});
+</script>
+
+</body>
+</html>

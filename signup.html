@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TU Foodies | Sign Up</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; font-family:"Poppins",sans-serif; }
+    body {
+      height:100vh; display:flex; align-items:center; justify-content:center;
+      background:url("https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1920&q=80") center/cover no-repeat fixed;
+      position:relative;
+    }
+    body::after { content:""; position:absolute; inset:0; background:rgba(0,0,0,0.55); z-index:0; }
+    .container { position:relative; z-index:1; background:rgba(255,255,255,0.95); border-radius:15px; padding:1rem 1.2rem; box-shadow:0 6px 25px rgba(0,0,0,0.25); width:90%; max-width:400px; text-align:center; }
+    .logo { display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:0.5rem; }
+    .logo img { width:36px; height:36px; }
+    .logo span { font-weight:700; font-size:1.2rem; color:#e63946; }
+    h2 { color:#222; margin-bottom:0.6rem; font-size:1.1rem; }
+    .input-group { position:relative; margin-bottom:0.55rem; }
+    input { width:100%; padding:0.55rem 0.8rem; border:1px solid #ccc; border-radius:8px; font-size:0.9rem; outline:none; transition:.3s; }
+    input:focus { border-color:#e63946; }
+    .toggle-password { position:absolute; top:50%; right:10px; transform:translateY(-50%); cursor:pointer; color:#888; font-size:0.85rem; }
+    .strength-meter { height:5px; border-radius:5px; background:#eee; overflow:hidden; margin-top:3px; }
+    .strength-bar { height:100%; width:0%; background:red; transition:.3s; }
+    .btn { width:100%; padding:0.55rem; background:#e63946; color:#fff; border:none; border-radius:8px; font-size:0.9rem; font-weight:600; cursor:pointer; transition:.3s; margin-top:0.4rem; }
+    .btn:hover { background:#d62839; transform:scale(1.02); }
+    .otp-box { display:none; transition:.3s; }
+    .success { color:green; margin-top:0.5rem; font-size:0.85rem; }
+    .error { color:red; margin-top:0.5rem; font-size:0.85rem; }
+    .social-login { margin-top:0.7rem; display:flex; flex-direction:column; gap:0.4rem; }
+    .social-btn { display:flex; align-items:center; justify-content:center; gap:8px; padding:0.45rem; border-radius:8px; font-weight:600; border:1px solid #ccc; background:#fff; cursor:pointer; font-size:0.8rem; transition:transform 0.3s; }
+    .social-btn:hover { transform:scale(1.02); }
+    .social-btn i { font-size:0.9rem; }
+    .google { color:#db4437; } .facebook { color:#1877f2; } .twitter { color:#1da1f2; }
+    .links { margin-top:0.8rem; font-size:0.8rem; }
+    .links a { color:#e63946; text-decoration:none; font-weight:500; transition:color 0.3s; }
+    .links a:hover { color:#b71c1c; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">
+      <img src="https://cdn-icons-png.flaticon.com/512/857/857681.png" alt="Logo">
+      <span>TU Foodies</span>
+    </div>
+    <h2>Create Account</h2>
+
+    <form id="signupForm" onsubmit="return false;">
+      <div class="input-group">
+        <input type="text" id="username" placeholder="Username" required />
+      </div>
+
+      <div class="input-group">
+        <input type="email" id="email" placeholder="Email (Gmail or College email)" required />
+      </div>
+
+      <div class="input-group">
+        <input type="password" id="password" placeholder="Password" required />
+        <i class="fa-solid fa-eye toggle-password" id="togglePassword"></i>
+        <div class="strength-meter"><div class="strength-bar" id="strengthBar"></div></div>
+      </div>
+
+      <div class="input-group">
+        <input type="password" id="confirmPassword" placeholder="Confirm Password" required />
+        <i class="fa-solid fa-eye toggle-password" id="toggleConfirm"></i>
+      </div>
+
+      <button type="button" id="sendOtpBtn" class="btn">Send OTP</button>
+
+      <div class="otp-box" id="otpSection">
+        <input type="text" id="otp" placeholder="Enter OTP" />
+        <button type="button" id="verifyOtpBtn" class="btn">Verify & Sign Up</button>
+      </div>
+
+      <p id="msg"></p>
+    </form>
+
+    <div class="social-login">
+      <div class="social-btn google"><i class="fa-brands fa-google"></i> Sign up with Google</div>
+      <div class="social-btn facebook"><i class="fa-brands fa-facebook"></i> Sign up with Facebook</div>
+      <div class="social-btn twitter"><i class="fa-brands fa-x-twitter"></i> Sign up with Twitter X</div>
+    </div>
+
+    <div class="links">
+      Already have an account? <a href="signin.html">Sign In</a>
+    </div>
+  </div>
+
+  <script type="module">
+    const baseURL = "http://localhost:3000";
+
+    // Show/hide passwords
+    function setupToggle(id, inputId){
+      const toggle=document.getElementById(id);
+      const input=document.getElementById(inputId);
+      toggle.addEventListener("click",()=>{
+        input.type=input.type==="password"?"text":"password";
+        toggle.classList.toggle("fa-eye-slash");
+      });
+    }
+    setupToggle("togglePassword","password");
+    setupToggle("toggleConfirm","confirmPassword");
+
+    // Password strength
+    const passwordField=document.getElementById("password");
+    const strengthBar=document.getElementById("strengthBar");
+    passwordField.addEventListener("input",()=>{
+      const v=passwordField.value;
+      let s=0;
+      if(v.length>=6)s++;
+      if(/[A-Z]/.test(v))s++;
+      if(/[0-9]/.test(v))s++;
+      if(/[^A-Za-z0-9]/.test(v))s++;
+      const p=(s/4)*100;
+      strengthBar.style.width=p+"%";
+      strengthBar.style.background=s<=1?"red":s==2?"orange":s==3?"#ffb703":"green";
+    });
+
+    const msg=document.getElementById("msg");
+
+    // ---------- Email validation (Option B) ----------
+    // Allow: gmail.com OR any college domain ending with .ac.in or .edu
+    function isAllowedEmail(email){
+      if(!email || !email.includes('@')) return false;
+      const domain = email.split('@')[1].toLowerCase();
+      if(domain === 'gmail.com') return true;
+      if(domain.endsWith('tezu.ac.in')) return true;   // Indian academic domains
+      if(domain.endsWith('tezu.ernet.in')) return true;     // common academic domains
+      return false;
+    }
+
+    // SEND OTP
+    document.getElementById("sendOtpBtn").onclick=async()=>{
+      const username=document.getElementById("username").value.trim();
+      const email=document.getElementById("email").value.trim();
+      const pass=passwordField.value.trim();
+      const confirm=document.getElementById("confirmPassword").value.trim();
+
+      if(!username||!email||!pass||!confirm){
+        msg.textContent="Please fill all fields."; msg.className="error"; return;
+      }
+      if(pass!==confirm){ msg.textContent="Passwords do not match!"; msg.className="error"; return; }
+
+      if(!isAllowedEmail(email)){
+        msg.textContent = "Use a Gmail or a valid college email (e.g. name@tezu.ac.in).";
+        msg.className = "error";
+        return;
+      }
+
+      msg.textContent="Sending OTP..."; msg.className="";
+      try{
+        const res=await fetch(`${baseURL}/send-otp`,{
+          method:"POST",headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({email})
+        });
+        const data=await res.json();
+        msg.textContent=data.message; msg.className=data.success?"success":"error";
+        if(data.success) document.getElementById("otpSection").style.display="block";
+      }catch(err){ console.error(err); msg.textContent="Server not responding."; msg.className="error"; }
+    };
+
+    // VERIFY OTP + SAVE USER
+    document.getElementById("verifyOtpBtn").onclick=async()=>{
+      const email=document.getElementById("email").value.trim();
+      const username=document.getElementById("username").value.trim();
+      const otp=document.getElementById("otp").value.trim();
+      const password=document.getElementById("password").value.trim();
+
+      msg.textContent="Verifying..."; msg.className="";
+      try{
+        const res=await fetch(`${baseURL}/verify-otp`,{
+          method:"POST",headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({email,otp,username})
+        });
+        const data=await res.json();
+        msg.textContent=data.message; msg.className=data.success?"success":"error";
+        if(data.success){
+          // Register user in DB
+          const reg=await fetch(`${baseURL}/register`,{
+            method:"POST",headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({username,email,password})
+          });
+          const regData=await reg.json();
+          if(regData.success){
+            alert("✅ Signup successful! Please log in.");
+            window.location.href="signin.html";
+          }else{
+            msg.textContent=regData.message;
+            msg.className="error";
+          }
+        }
+      }catch(err){ console.error(err); msg.textContent="Verification error."; msg.className="error"; }
+      document.getElementById("otp").value = "";
+    };
+  </script>
+
+  <!-- SOCIAL SIGN-UP CODE (Firebase) -->
+  <script type="module">
+    import { auth, provider, facebookProvider, twitterProvider, signInWithPopup } from "./firebase.js";
+
+    const handleSocialSignup = async (authProvider, providerName) => {
+      try {
+        const result = await signInWithPopup(auth, authProvider);
+        const user = result.user;
+
+        localStorage.setItem("tufoodies_user", user.displayName || user.email.split('@')[0]);
+        localStorage.setItem("tufoodies_email", user.email);
+
+        alert(`🎉 ${providerName} Signup Successful!`);
+        window.location.href = "home_page.html";
+      } catch (err) {
+        console.error(err);
+        alert(`${providerName} Signup Failed: ` + err.message);
+      }
+    };
+
+    document.querySelector(".google").addEventListener("click", () => handleSocialSignup(provider, "Google"));
+    document.querySelector(".facebook").addEventListener("click", () => handleSocialSignup(facebookProvider, "Facebook"));
+    document.querySelector(".twitter").addEventListener("click", () => handleSocialSignup(twitterProvider, "Twitter"));
+  </script>
+</body>
+</html>

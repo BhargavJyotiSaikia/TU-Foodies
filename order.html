@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Food - TU Foodies</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #ff6b6b;
+      --secondary: #ff8e8e;
+      --accent: #d62839;
+      --bg: #f8f9fa;
+      --text: #2d3436;
+      --muted: #636e72;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      padding-bottom: 80px;
+    }
+
+    /* Loader */
+    #loader {
+      position: fixed;
+      inset: 0;
+      background: #fff;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.5s;
+    }
+
+    #loader.hide {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #loader i {
+      font-size: 3rem;
+      color: var(--primary);
+      animation: bounce 1s infinite;
+    }
+
+    @keyframes bounce {
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-10px);
+      }
+    }
+
+    /* Navbar */
+    .navbar {
+      background: #fff;
+      padding: 1rem 5%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .logo img {
+      width: 40px;
+    }
+
+    .search {
+      flex: 1;
+      max-width: 400px;
+      margin: 0 2rem;
+      position: relative;
+    }
+
+    .search input {
+      width: 100%;
+      padding: 12px 20px 12px 45px;
+      border-radius: 50px;
+      border: 1px solid #eee;
+      background: #f1f2f6;
+      transition: 0.3s;
+    }
+
+    .search input:focus {
+      background: #fff;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      outline: none;
+    }
+
+    .search i {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+    }
+
+    .cart-btn {
+      position: relative;
+      background: none;
+      border: none;
+      font-size: 1.4rem;
+      cursor: pointer;
+      color: var(--text);
+    }
+
+    .cart-badge {
+      position: absolute;
+      top: -5px;
+      right: -8px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.7rem;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+
+    /* Categories */
+    .categories {
+      display: flex;
+      gap: 1rem;
+      padding: 1rem 5%;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .categories::-webkit-scrollbar {
+      display: none;
+    }
+
+    .cat-btn {
+      padding: 8px 20px;
+      border-radius: 30px;
+      border: 1px solid #eee;
+      background: #fff;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: 0.3s;
+      font-weight: 500;
+    }
+
+    .cat-btn.active,
+    .cat-btn:hover {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+      box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+    }
+
+    /* Grid */
+    .container {
+      padding: 1rem 5%;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 2rem;
+      padding-bottom: 2rem;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      transition: 0.3s;
+      position: relative;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+    }
+
+    .card img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+    }
+
+    .card-body {
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .title {
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+
+    .meta {
+      font-size: 0.9rem;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .price {
+      font-weight: 700;
+      color: var(--accent);
+      font-size: 1.1rem;
+    }
+
+    .add-btn {
+      width: 100%;
+      padding: 8px;
+      border-radius: 8px;
+      border: none;
+      background: var(--text);
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .add-btn:hover {
+      background: var(--accent);
+    }
+
+    .qty-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f1f2f6;
+      border-radius: 8px;
+      padding: 0.2rem 0.4rem;
+    }
+
+    .qty-btn {
+      background: none;
+      border: 0;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* Cart Drawer */
+    .cart-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      height: 100%;
+      width: 360px;
+      max-width: 90vw;
+      background: #fff;
+      box-shadow: -10px 0 40px rgba(0, 0, 0, 0.1);
+      transform: translateX(105%);
+      transition: 0.3s;
+      display: flex;
+      flex-direction: column;
+      z-index: 1200;
+    }
+
+    .cart-drawer.open {
+      transform: translateX(0);
+    }
+
+    .cart-head {
+      padding: 1rem;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .cart-body {
+      flex: 1;
+      overflow: auto;
+      padding: 1rem;
+    }
+
+    .cart-item {
+      display: flex;
+      gap: 0.7rem;
+      margin-bottom: 1rem;
+    }
+
+    .cart-item button:hover {
+      color: #d62839;
+    }
+
+    .cart-item img {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    .cart-item .meta {
+      flex: 1;
+    }
+
+    .cart-item .meta .name {
+      font-weight: 600;
+    }
+
+    .cart-item .meta .small {
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .cart-footer {
+      border-top: 1px solid #eee;
+      padding: 1rem;
+    }
+
+    .checkout-btn {
+      width: 100%;
+      padding: 0.8rem;
+      background: var(--accent);
+      color: #fff;
+      border: 0;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      margin-top: 3rem;
+    }
+
+    /* Veg/Non-Veg indicator */
+    .type-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+      display: inline-block;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+
+    .type-dot.veg {
+      background: #2ecc71;
+    }
+
+    .type-dot.nonveg {
+      background: #e74c3c;
+    }
+
+    .fav-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #e63946;
+      font-size: 1rem;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+      cursor: pointer;
+      transition: transform 0.2s, background 0.3s;
+    }
+
+    .fav-btn.active {
+      color: #fff;
+      background: #e63946;
+    }
+
+    .fav-btn:hover {
+      transform: scale(1.1);
+    }
+
+    /* 💳 Payment Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(5px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .payment-modal {
+      background: #fff;
+      padding: 2rem;
+      border-radius: 16px;
+      width: 400px;
+      max-width: 90%;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(20px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .pay-form input {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+
+    .pay-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .pay-btn {
+      width: 100%;
+      padding: 12px;
+      background: #2ecc71;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 1rem;
+      font-size: 1rem;
+      transition: 0.3s;
+    }
+
+    .pay-btn:hover {
+      background: #27ae60;
+    }
+
+    .close-modal {
+      float: right;
+      cursor: pointer;
+      font-size: 1.5rem;
+      color: #777;
+    }
+
+    /* 🛑 Cancel Toast */
+    .cancel-toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #fff;
+      padding: 1.2rem;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 3000;
+      width: 320px;
+      transform: translateY(120%);
+      transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .cancel-toast.show {
+      transform: translateY(0);
+    }
+
+    .toast-content {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .toast-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .undo-btn {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ff6b6b;
+      background: #fff;
+      color: #ff6b6b;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.2s;
+    }
+
+    .undo-btn:hover {
+      background: #fff0f0;
+    }
+
+    .view-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background: #2ecc71;
+      color: #fff;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.2s;
+    }
+
+    .view-btn:hover {
+      background: #27ae60;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- 🍴 Loader -->
+  <div id="loader">
+    <i class="fa-solid fa-utensils"></i>
+    <span>Serving up your menu...</span>
+  </div>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <a href="home_page.html" class="logo"><img src="https://cdn-icons-png.flaticon.com/512/857/857681.png" alt=""> TU Foodies</a>
+    <div class="search">
+      <i class="fa fa-search"></i>
+      <input id="searchBox" placeholder="Search dishes…">
+    </div>
+    <button id="cartBtn" class="cart-btn"><i class="fa fa-shopping-cart"></i><span id="cartBadge" class="cart-badge" style="display:none">0</span></button>
+  </header>
+
+  <!-- CATEGORIES -->
+  <div id="categories" class="categories"></div>
+
+  <div class="container">
+    <section id="menuGrid" class="grid"></section>
+  </div>
+
+  <!-- CART DRAWER -->
+  <aside id="cartDrawer" class="cart-drawer">
+    <div class="cart-head">
+      <strong>My Cart</strong>
+      <button id="closeCart" style="background:none;border:0;font-size:1.1rem"><i class="fa fa-times"></i></button>
+    </div>
+    <div id="cartBody" class="cart-body">
+      <div id="cartItems"></div>
+      <div id="cartEmpty" class="empty">Your cart is empty.</div>
+    </div>
+    <div class="cart-footer">
+      <div style="margin-bottom:.6rem;font-weight:600">Subtotal: <span id="subtotal">₹0</span></div>
+      <button id="checkoutBtn" class="checkout-btn">Checkout</button>
+    </div>
+  </aside>
+
+  <!-- PAYMENT MODAL -->
+  <div id="paymentModal" class="modal-overlay">
+    <div class="payment-modal">
+      <span id="closePayment" class="close-modal">&times;</span>
+      <h3>Complete Payment</h3>
+      <p>Amount: <strong id="payAmount">₹0</strong></p>
+      <div class="pay-form">
+        <input id="cardName" placeholder="Cardholder name">
+        <input id="cardNumber" placeholder="Card number">
+        <div class="pay-row">
+          <input id="cardExp" placeholder="MM/YY">
+          <input id="cardCVC" placeholder="CVC">
+        </div>
+        <button id="confirmPayBtn" class="pay-btn">Pay Now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CANCEL TOAST -->
+  <div id="cancelToast" class="cancel-toast">
+    <div class="toast-content">
+      <div>
+        <strong>Order placed</strong>
+        <div style="font-size:0.9rem;color:var(--muted)">You can cancel within <span id="countdown">60</span>s</div>
+      </div>
+    </div>
+    <div class="toast-actions">
+      <button id="undoOrderBtn" class="undo-btn">Undo</button>
+      <button id="viewOrderBtn" class="view-btn">View Orders</button>
+    </div>
+  </div>
+
+  <script>
+    // ======= KEYS & STATE =======
+    const CART_KEY = 'tu_cart';
+    const FAV_KEY = 'tu_favs';
+    const ORDERS_KEY = 'tu_orders';
+
+    let items = [
+      { id: '1', name: 'Sweet Lassi', cat: 'beverages', price: 40, img: 'https://www.indianveggiedelight.com/wp-content/uploads/2023/01/sweet-lassi-recipe-featured.jpg', outlet: 'Essentials', type: 'veg' },
+      { id: '2', name: 'Puri Bhaji', cat: 'breakfast', price: 70, img: 'https://cdn.cdnparenting.com/articles/2020/02/26144721/PURI-BHAJI-RECIPE-1024x700.webp', outlet: 'Gobin Hotel', type: 'veg' },
+      { id: '3', name: 'Chicken Chowmein', cat: 'fastfood', price: 80, img: 'https://www.onceuponachef.com/images/2023/06/Chicken-Chow-Mein-Hero-7-scaled.jpg', outlet: 'Spice Delight', type: 'nonveg' },
+      { id: '4', name: 'Chicken Curry', cat: 'nonveg', price: 150, img: 'https://www.funfoodfrolic.com/wp-content/uploads/2020/09/Chicken-Curry-Thumbnail-1024x1024.jpg', outlet: 'VRL', type: 'nonveg' },
+      { id: '5', name: 'Paneer Butter Masala', cat: 'veg', price: 180, img: 'https://www.cubesnjuliennes.com/wp-content/uploads/2019/03/Easy-Butter-Paneer-Masala-Recipe.jpg', outlet: 'Vinayak', type: 'veg' },
+      { id: '6', name: 'Chicken Thali', cat: 'combos', price: 160, img: 'https://img.freepik.com/premium-photo/special-chicken-thali-food-platter-consists-variety-veggieschicken-meat-lentilsrice-sweet-dish-snacks-etc-selective-focus_726363-556.jpg?w=2000', outlet: 'Dur Jyoti', type: 'nonveg' },
+      { id: '7', name: 'Chicken Roll', cat: 'assamese', price: 80, img: 'https://www.scrumptiously.com/wp-content/uploads/2024/06/ChickenKathiRoll.webp', outlet: 'Varieties', type: 'nonveg' },
+      { id: '8', name: 'Chicken Fried Rice', cat: 'rice', price: 120, img: 'https://www.funfoodfrolic.com/wp-content/uploads/2021/10/Fried-Rice-Blog-Thumbnail.jpg', outlet: 'Cafeteria', type: 'nonveg' },
+      { id: '9', name: 'Chicken Momo', cat: 'fastfood', price: 60, img: 'https://jslight.com.np/wp-content/uploads/2022/06/momo.jpg', outlet: 'Chetry Hotel', type: 'nonveg' },
+      { id: '10', name: 'Paratha', cat: 'breakfast', price: 40, img: 'https://www.whiskaffair.com/wp-content/uploads/2020/06/Lachha-Paratha-2-1.jpg', outlet: 'Shuruvaat', type: 'veg' }
+    ];
+
+    const categories = ['all', 'breakfast', 'assamese', 'rice', 'nonveg', 'veg', 'combos', 'fastfood', 'beverages'];
+
+    let currentCat = 'all';
+    let cart = JSON.parse(localStorage.getItem(CART_KEY) || '{}');
+    let favorites = JSON.parse(localStorage.getItem(FAV_KEY) || '[]');
+
+    const grid = document.getElementById('menuGrid');
+
+    // ===== Loader hide =====
+    window.addEventListener('load', () => {
+      document.getElementById('loader').classList.add('hide');
+      // small delay to remove from flow for accessibility
+      setTimeout(() => document.getElementById('loader').style.display = 'none', 600);
+    });
+
+    // ===== Render categories =====
+    const catContainer = document.getElementById('categories');
+    categories.forEach(c => {
+      const b = document.createElement('button');
+      b.className = 'cat-btn' + (c === 'all' ? ' active' : '');
+      b.dataset.cat = c;
+      b.textContent = c === 'all' ? 'All' : c.charAt(0).toUpperCase() + c.slice(1);
+      catContainer.appendChild(b);
+    });
+
+    // ===== Toggle Favorite =====
+    function toggleFavorite(id) {
+      const index = favorites.indexOf(id);
+      if (index > -1) {
+        favorites.splice(index, 1);
+      } else {
+        favorites.push(id);
+      }
+      localStorage.setItem(FAV_KEY, JSON.stringify(favorites));
+      renderGrid(document.getElementById('searchBox').value);
+    }
+
+    /* 🔍 Render Menu Grid */
+    function renderGrid(query = '') {
+      grid.innerHTML = '';
+      const filtered = items.filter(it =>
+        (currentCat === 'all' || it.cat === currentCat) &&
+        it.name.toLowerCase().includes(query.toLowerCase())
+      );
+
+      if (!filtered.length) {
+        grid.innerHTML = '<p style="text-align:center;color:var(--muted)">No items found.</p>';
+        return;
+      }
+
+      filtered.forEach(it => {
+        const c = document.createElement('div');
+        c.className = 'card';
+        const favActive = favorites.includes(it.id) ? 'active' : '';
+        const typeDot = `<span class="type-dot ${it.type}"></span>`;
+        c.innerHTML = `
+      <img src="${it.img}" alt="${it.name}">
+      <button class="fav-btn ${favActive}" onclick="toggleFavorite('${it.id}')">
+        <i class="fa-solid fa-heart"></i>
+      </button>
+      <div class="card-body">
+        <div>
+          <div class="title">${typeDot}${it.name}</div>
+          <div class="meta">${it.outlet} <span class="price">₹${it.price}</span></div>
+        </div>
+        <div class="card-footer" id="ctl-${it.id}"></div>
+      </div>`;
+        grid.appendChild(c);
+      });
+
+      refreshButtons();
+    }
+
+    /* 🛒 Cart Functions */
+    function saveCart() {
+      localStorage.setItem(CART_KEY, JSON.stringify(cart));
+    }
+
+    function subtotal() {
+      return Object.values(cart).reduce((a, b) => a + b.price * b.qty, 0);
+    }
+
+    function add(id) {
+      const it = items.find(x => x.id === id);
+      if (!cart[id]) cart[id] = { ...it, qty: 0 };
+      cart[id].qty++;
+      saveCart();
+      renderCart();
+      refreshButtons();
+    }
+
+    function dec(id) {
+      if (cart[id]) {
+        cart[id].qty--;
+        if (cart[id].qty <= 0) delete cart[id];
+        saveCart();
+        renderCart();
+        refreshButtons();
+      }
+    }
+
+    function refreshButtons() {
+      document.querySelectorAll('[id^="ctl-"]').forEach(c => {
+        const id = c.id.replace('ctl-', '');
+        const e = cart[id];
+        c.innerHTML = e
+          ? `<div class="qty-wrap">
+          <button class="qty-btn" onclick="dec('${id}')">−</button>
+          <div>${e.qty}</div>
+          <button class="qty-btn" onclick="add('${id}')">+</button>
+         </div>`
+          : `<button class="add-btn" onclick="add('${id}')">Add</button>`;
+      });
+
+      const count = Object.values(cart).reduce((s, c) => s + c.qty, 0);
+      const badge = document.getElementById('cartBadge');
+      if (count) {
+        badge.style.display = '';
+        badge.textContent = count;
+      } else badge.style.display = 'none';
+    }
+
+    /* 🧺 Cart Drawer */
+    const drawer = document.getElementById('cartDrawer');
+
+    function renderCart() {
+      const b = document.getElementById('cartItems');
+      b.innerHTML = '';
+      const v = Object.values(cart);
+
+      if (!v.length) {
+        document.getElementById('cartEmpty').style.display = 'block';
+      } else {
+        document.getElementById('cartEmpty').style.display = 'none';
+        v.forEach(it => {
+          const d = document.createElement('div');
+          d.className = 'cart-item';
+          d.innerHTML = `
+        <img src="${it.img}" alt="">
+        <div class="meta">
+          <div class="name">${it.name}</div>
+          <div class="small">₹${it.price}</div>
+          <div style="margin-top:4px">
+            <button class="qty-btn" onclick="dec('${it.id}')">−</button>
+            <span>${it.qty}</span>
+            <button class="qty-btn" onclick="add('${it.id}')">+</button>
+          </div>
+        </div>`;
+          b.appendChild(d);
+        });
+      }
+
+      document.getElementById('subtotal').textContent = '₹' + subtotal();
+    }
+
+    document.getElementById('cartBtn').onclick = () => {
+      drawer.classList.add('open');
+      renderCart();
+    };
+    document.getElementById('closeCart').onclick = () => drawer.classList.remove('open');
+
+    /* 💳 Payment & Cancel Logic */
+    const paymentModal = document.getElementById('paymentModal');
+    const closePayment = document.getElementById('closePayment');
+    const confirmPayBtn = document.getElementById('confirmPayBtn');
+    const cancelToast = document.getElementById('cancelToast');
+    const countdownEl = document.getElementById('countdown');
+    const undoOrderBtn = document.getElementById('undoOrderBtn');
+    const viewOrderBtn = document.getElementById('viewOrderBtn');
+
+    let cancelTimer;
+    let currentOrderId = null;
+
+    document.getElementById('checkoutBtn').onclick = () => {
+      const total = subtotal();
+      if (total === 0) {
+        alert("Your cart is empty!");
+        return;
+      }
+      document.getElementById('payAmount').textContent = total;
+      paymentModal.classList.add('open');
+      drawer.classList.remove('open');
+    };
+
+    closePayment.onclick = () => {
+      paymentModal.classList.remove('open');
+    };
+
+    window.onclick = (e) => {
+      if (e.target === paymentModal) {
+        paymentModal.classList.remove('open');
+      }
+    };
+
+    confirmPayBtn.onclick = async () => {
+      const inputs = document.querySelectorAll('.pay-form input');
+      let valid = true;
+      inputs.forEach(i => {
+        if (!i.value) {
+          i.style.borderColor = 'red';
+          valid = false;
+        } else {
+          i.style.borderColor = '#ddd';
+        }
+      });
+
+      if (!valid) {
+        alert("Please fill in all payment details.");
+        return;
+      }
+
+      const originalText = confirmPayBtn.innerText;
+      confirmPayBtn.innerText = "Processing...";
+      confirmPayBtn.disabled = true;
+      confirmPayBtn.style.background = "#95a5a6";
+
+      await new Promise(r => setTimeout(r, 2000));
+
+      confirmPayBtn.innerText = "Success!";
+      confirmPayBtn.style.background = "#2ecc71";
+
+      setTimeout(() => {
+        // Create Order
+        const total = subtotal();
+        currentOrderId = "ORD-" + Date.now();
+        const order = {
+          id: currentOrderId,
+          date: new Date().toLocaleDateString(),
+          items: Object.values(cart),
+          total: total,
+          status: "Preparing"
+        };
+
+        const orders = JSON.parse(localStorage.getItem(ORDERS_KEY) || "[]");
+        orders.push(order);
+        localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+
+        // Clear cart
+        cart = {};
+        saveCart();
+        renderCart();
+        refreshButtons();
+        paymentModal.classList.remove('open');
+
+        // Reset Button
+        confirmPayBtn.innerText = originalText;
+        confirmPayBtn.disabled = false;
+
+        // Show Cancel Toast
+        showCancelToast();
+      }, 500);
+    };
+
+    function showCancelToast() {
+      cancelToast.classList.add('show');
+      let timeLeft = 60;
+      countdownEl.textContent = timeLeft;
+
+      cancelTimer = setInterval(() => {
+        timeLeft--;
+        countdownEl.textContent = timeLeft;
+        if (timeLeft <= 0) {
+          clearInterval(cancelTimer);
+          cancelToast.classList.remove('show');
+          window.location.href = "profile.html";
+        }
+      }, 1000);
+    }
+
+    undoOrderBtn.onclick = () => {
+      clearInterval(cancelTimer);
+      const orders = JSON.parse(localStorage.getItem(ORDERS_KEY) || "[]");
+      const newOrders = orders.filter(o => o.id !== currentOrderId);
+      localStorage.setItem(ORDERS_KEY, JSON.stringify(newOrders));
+
+      cancelToast.classList.remove('show');
+      alert("🚫 Order Cancelled Successfully.");
+    };
+
+    viewOrderBtn.onclick = () => {
+      clearInterval(cancelTimer);
+      window.location.href = "profile.html";
+    };
+
+    /* 🍱 Category Filter */
+    document.getElementById('categories').addEventListener('click', e => {
+      const b = e.target.closest('.cat-btn');
+      if (!b) return;
+      document.querySelectorAll('.cat-btn').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      currentCat = b.dataset.cat;
+      renderGrid(document.getElementById('searchBox').value);
+    });
+
+    /* 🔍 Search */
+    document.getElementById('searchBox').addEventListener('input', e =>
+      renderGrid(e.target.value)
+    );
+
+    // re-render grid initially
+    renderGrid();
+    renderCart();
+  </script>
+
+</body>
+
+</html>

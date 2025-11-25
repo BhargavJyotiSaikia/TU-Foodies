@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TU Foodies | Sign In</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script type="module" src="firebase.js"></script>
+
+  <style>
+    * {margin:0;padding:0;box-sizing:border-box;font-family:"Poppins",sans-serif;}
+    body {
+      height:100vh;display:flex;align-items:center;justify-content:center;
+      background:url("https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1920&q=80") center/cover no-repeat fixed;
+      position:relative;
+    }
+    body::after{content:"";position:absolute;inset:0;background:rgba(0,0,0,0.55);z-index:0;}
+    .signin-container {
+      position:relative;z-index:1;background:rgba(255,255,255,0.95);
+      padding:1rem 1.2rem;border-radius:12px;
+      box-shadow:0 6px 25px rgba(0,0,0,0.25);
+      width:90%;max-width:350px;text-align:center;animation:popIn .8s ease;
+    }
+    @keyframes popIn{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+    .logo{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:0.5rem;}
+    .logo img{width:36px;height:36px;}
+    .logo span{font-weight:700;font-size:1.2rem;color:#e63946;}
+    h2{color:#222;margin-bottom:0.6rem;font-size:1.1rem;}
+    input{width:100%;padding:0.55rem 0.8rem;margin:0.5rem 0;border:1px solid #ccc;border-radius:8px;outline:none;}
+    input:focus{border-color:#e63946;}
+    button{width:100%;padding:0.55rem;border:none;border-radius:8px;background:#e63946;color:#fff;font-weight:600;cursor:pointer;margin-top:0.3rem;transition:.3s;}
+    button:hover{background:#d62839;transform:scale(1.02);}
+    p{font-size:0.9rem;margin-top:0.5rem;}
+    .success{color:green;} .error{color:red;}
+    .social-login{margin-top:0.8rem;display:flex;flex-direction:column;gap:0.4rem;}
+    .social-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:0.45rem;border:1px solid #ccc;border-radius:8px;background:#fff;font-weight:600;font-size:0.85rem;cursor:pointer;}
+    .social-btn:hover{transform:scale(1.02);}
+    .google{color:#db4437;} .facebook{color:#1877f2;} .twitter{color:#1da1f2;}
+    .links{margin-top:0.8rem;font-size:0.85rem;}
+    .links a{color:#e63946;text-decoration:none;}
+  </style>
+</head>
+<body>
+  <div class="signin-container">
+    <div class="logo">
+      <img src="https://cdn-icons-png.flaticon.com/512/857/857681.png" alt="Logo">
+      <span>TU Foodies</span>
+    </div>
+    <h2>Welcome Back</h2>
+
+    <input type="email" id="email" placeholder="Enter your Gmail" required>
+    <input type="password" id="password" placeholder="Enter your password" required>
+    <button id="loginBtn">Sign In</button>
+    <p id="msg"></p>
+
+    <div class="social-login">
+      <div class="social-btn google"><i class="fa-brands fa-google"></i> Login with Google</div>
+      <div class="social-btn facebook"><i class="fa-brands fa-facebook"></i> Login with Facebook</div>
+      <div class="social-btn twitter"><i class="fa-brands fa-x-twitter"></i> Login with Twitter X</div>
+    </div>
+
+    <div class="links">Don’t have an account? <a href="signup.html">Create one</a></div>
+  </div>
+  <script type="module">
+  const baseURL = "http://localhost:3000";
+  const msg = document.getElementById("msg");
+
+  document.getElementById("loginBtn").onclick = async () => {
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+
+    if (!email || !password) {
+      msg.textContent = "Please enter email and password!";
+      msg.className = "error";
+      return;
+    }
+
+    try {
+      const res = await fetch(`${baseURL}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+
+      msg.textContent = data.message;
+      msg.className = data.success ? "success" : "error";
+
+      if (data.success) {
+        // ✅ Save username and email for later use
+        localStorage.setItem("tufoodies_user", data.username);
+        localStorage.setItem("tufoodies_email", email);
+
+        setTimeout(() => {
+          alert("✅ Login Successful!");
+          window.location.href = "home_page.html";
+        }, 800);
+      }
+    } catch {
+      msg.textContent = "Server not responding.";
+      msg.className = "error";
+    }
+  };
+
+  // GOOGLE LOGIN LOGIC
+  import { auth, provider, facebookProvider, twitterProvider, signInWithPopup } from "./firebase.js";
+
+  const handleSocialLogin = async (authProvider, providerName) => {
+    try {
+      const result = await signInWithPopup(auth, authProvider);
+      const user = result.user;
+
+      localStorage.setItem("tufoodies_user", user.displayName);
+      localStorage.setItem("tufoodies_email", user.email);
+
+      alert(`🎉 ${providerName} Login Successful!`);
+      window.location.href = "home_page.html";
+    } catch (err) {
+      alert(`${providerName} Login Failed: ` + err.message);
+    }
+  };
+
+  const googleBtn = document.querySelector(".google");
+  if (googleBtn) {
+    googleBtn.addEventListener("click", () => handleSocialLogin(provider, "Google"));
+  }
+
+  const facebookBtn = document.querySelector(".facebook");
+  if (facebookBtn) {
+    facebookBtn.addEventListener("click", () => handleSocialLogin(facebookProvider, "Facebook"));
+  }
+
+  const twitterBtn = document.querySelector(".twitter");
+  if (twitterBtn) {
+    twitterBtn.addEventListener("click", () => handleSocialLogin(twitterProvider, "Twitter"));
+  }
+</script>
+
+</body>
+</html>

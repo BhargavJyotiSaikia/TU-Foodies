@@ -1,0 +1,12 @@
+{
+  "type": "module",
+  "name": "tufoodies",
+  "version": "1.0.0",
+  "main": "server.js",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.2.3",
+    "express": "^4.19.0",
+    "nodemailer": "^6.9.5"
+  }
+}

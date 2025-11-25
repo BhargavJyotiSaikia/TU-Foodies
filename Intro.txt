@@ -1,0 +1,17 @@
+
+----  TU FOODIES ----
+
+GROUP MEMBERS
+---------------------
+1. Bhargav Jyoti Saikia (CSB24022)
+2. NiharJyoti Choudhury (CSB24011)
+3. Partha Sarathi Borgohain (CSB24004)
+4. Rupam Kumari (CSB24042)
+
+Source/ Reference
+---------------------
+GeeksForGeeks, Stack OverFlow, Chat GPT, Gemini
+
+IDE Used
+---------------------
+Visual Studio Code

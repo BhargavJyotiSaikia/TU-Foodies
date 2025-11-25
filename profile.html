@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TU Foodies | Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"Poppins",sans-serif;}
+body{display:flex;min-height:100vh;background:#f9fafb;transition:.3s;}
+.dark-mode{background:#121212;color:#eee;}
+
+/* Sidebar */
+.sidebar{width:240px;background:#e63946;color:#fff;
+display:flex;flex-direction:column;justify-content:space-between;
+padding:1rem 0;}
+.sidebar h2{text-align:center;margin-bottom:1rem;font-size:1.3rem;}
+.sidebar ul{list-style:none;}
+.sidebar li{padding:.9rem 1.2rem;display:flex;align-items:center;gap:.7rem;
+cursor:pointer;transition:.3s;border-left:4px solid transparent;}
+.sidebar li.active{background:rgba(255,255,255,0.15);border-left:4px solid #fff;}
+.sidebar li:hover{background:rgba(255,255,255,0.25);}
+.sidebar a{color:#fff;text-decoration:none;display:flex;align-items:center;gap:.7rem;}
+.logout{text-align:center;margin:1rem 0;cursor:pointer;}
+
+/* Main */
+.main{flex:1;padding:1.5rem 2rem;overflow-y:auto;position:relative;}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;}
+.topbar h1{color:#e63946;font-size:1.3rem;}
+.topbar-right{display:flex;align-items:center;gap:1rem;}
+.topbar-right i{cursor:pointer;font-size:1.1rem;}
+.profile-pic{width:38px;height:38px;border-radius:50%;object-fit:cover;
+border:2px solid #e63946;cursor:pointer;transition:.3s;}
+.profile-pic:hover{transform:scale(1.05);}
+
+/* Dropdown */
+.user-dropdown{position:absolute;top:60px;right:20px;background:#fff;
+box-shadow:0 4px 15px rgba(0,0,0,.15);border-radius:10px;padding:.8rem;
+width:150px;display:none;flex-direction:column;z-index:10;}
+.user-dropdown a{color:#333;text-decoration:none;padding:.4rem .5rem;border-radius:6px;transition:.2s;}
+.user-dropdown a:hover{background:#f3f4f6;}
+
+/* Cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+gap:1rem;margin-top:1.2rem;}
+.card{background:#fff;border-radius:10px;padding:1rem;box-shadow:0 2px 8px rgba(0,0,0,.1);}
+.dark-mode .card{background:#1e1e1e;}
+.card h3{font-size:.9rem;margin-bottom:.3rem;}
+.card p{font-weight:600;color:#e63946;}
+
+/* Sections */
+.section{display:none;animation:fade .4s ease;}
+.section.active{display:block;}
+@keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* Favorites */
+.order-card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);
+margin-bottom:1rem;padding:1rem;display:flex;gap:1rem;align-items:center;justify-content:space-between;}
+.order-card img{width:90px;height:90px;border-radius:10px;object-fit:cover;}
+.order-info{flex:1;}
+.order-actions{margin-left:auto;}
+.track-btn{background:#e63946;color:#fff;border:none;padding:.4rem .8rem;border-radius:8px;
+cursor:pointer;font-size:.85rem;font-weight:600;transition:.3s;}
+.track-btn:hover{background:#d62839;}
+
+/* Profile */
+.profile-container{max-width:600px;margin:2rem auto;background:#fff;padding:2rem;
+border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,0.1);}
+.profile-container h2{margin-bottom:1rem;color:#e63946;}
+.profile-photo{text-align:center;margin-bottom:1rem;}
+.profile-photo img{width:90px;height:90px;border-radius:50%;border:2px solid #e63946;object-fit:cover;}
+.change-photo{margin-top:.5rem;background:#e63946;color:#fff;border:none;
+padding:.4rem .9rem;border-radius:6px;font-size:.85rem;cursor:pointer;}
+.profile-field{margin-bottom:1rem;position:relative;}
+.profile-field label{font-weight:600;display:block;margin-bottom:.4rem;}
+.profile-field input, .profile-field select{width:100%;padding:.6rem .8rem;border:1px solid #ddd;border-radius:8px;font-size:.95rem;}
+.profile-field input:focus, .profile-field select:focus{border-color:#e63946;outline:none;}
+.edit-icon{position:absolute;right:10px;top:35px;color:#e63946;cursor:pointer;font-size:1rem;}
+.save-btn{display:inline-block;margin-top:1rem;padding:.6rem 1.2rem;background:#e63946;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;}
+.save-btn:hover{background:#d62839;}
+
+/* Crop Modal */
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);justify-content:center;align-items:center;z-index:9999;}
+.modal-content{background:#fff;padding:1rem;border-radius:10px;width:90%;max-width:400px;text-align:center;}
+.modal-content img{max-width:100%;max-height:300px;display:block;margin:0 auto;}
+.modal-btns{display:flex;justify-content:space-between;margin-top:1rem;}
+.modal-btns button{padding:.5rem 1.2rem;border:none;border-radius:6px;font-weight:600;cursor:pointer;}
+#cropSave{background:#e63946;color:#fff;}
+#cropCancel{background:#ccc;color:#333;}
+</style>
+</head>
+
+<body>
+<aside class="sidebar">
+ <div>
+  <h2>🍴 TU FOODIES</h2>
+  <ul id="menu">
+    <li onclick="window.location.href='home_page.html'"><i class="fa fa-home"></i>Home</li>
+    <li data-page="dashboard" class="active"><i class="fa fa-chart-line"></i>Dashboard</li>
+    <li data-page="favorites"><i class="fa fa-heart"></i>Favorites</li>
+    <li data-page="profile"><i class="fa fa-user"></i>My Profile</li>
+  </ul>
+ </div>
+ <div class="logout" id="logoutBtn"><i class="fa fa-sign-out-alt"></i> Logout</div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <h1>Welcome back, <span id="username">User</span> 👋</h1>
+    <div class="topbar-right">
+      <i class="fa fa-moon" id="themeToggle"></i>
+      <i class="fa fa-bell" id="notifyBtn"></i>
+      <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png" class="profile-pic" id="profileImg">
+    </div>
+    <div class="user-dropdown" id="userDropdown">
+      <a href="#" id="openProfile">My Profile</a>
+      <a href="home_page.html">Home</a>
+      <a href="#" id="logoutBtn2">Logout</a>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <section id="dashboard" class="section active">
+    <div class="cards">
+      <div class="card"><h3>Total Orders</h3><p id="totalOrders">0</p></div>
+      <div class="card"><h3>Wallet Balance</h3><p id="wallet">₹ 0</p></div>
+      <div class="card"><h3>Rewards Points</h3><p id="points">0</p></div>
+    </div>
+    <canvas id="ordersChart" height="120"></canvas>
+  </section>
+
+  <!-- Favorites -->
+  <section id="favorites" class="section">
+    <h2>Favorites</h2>
+    <div id="favContainer" style="margin-top:1rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1rem;"></div>
+    <p id="noFavs" style="color:#777;text-align:center;margin-top:1rem;">❤️ Your saved dishes will appear here.</p>
+  </section>
+
+  <!-- Profile -->
+  <section id="profile" class="section">
+    <div class="profile-container">
+      <div class="profile-photo">
+        <img id="photoPreview" src="https://cdn-icons-png.flaticon.com/512/847/847969.png" alt="Profile Photo">
+        <input type="file" id="photoInput" accept="image/*" style="display:none;">
+        <button class="change-photo" id="changePhotoBtn">Change Photo</button>
+      </div>
+      <div class="profile-field">
+        <label>Username</label>
+        <input type="text" id="profileName" disabled>
+        <i class="fa fa-pen edit-icon" id="editUsername"></i>
+      </div>
+      <div class="profile-field">
+        <label>Email</label>
+        <input type="email" id="profileEmail" disabled>
+      </div>
+      <div class="profile-field">
+        <label>Gender</label>
+        <select id="profileGender">
+          <option value="">Select</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="profile-field">
+        <label>Date of Birth</label>
+        <input type="date" id="profileDOB">
+      </div>
+      <div class="profile-field">
+        <label>Address</label>
+        <input type="text" id="profileAddress">
+      </div>
+      <div class="profile-field">
+        <label>Pincode</label>
+        <input type="text" id="profilePincode">
+      </div>
+      <button class="save-btn" id="saveProfile">Save Changes</button>
+    </div>
+    
+    <!-- My Orders Section inside Profile -->
+    <div class="profile-container" style="margin-top:2rem;">
+      <h2>📜 My Orders</h2>
+      <div id="ordersList"></div>
+    </div>
+  </section>
+</main>
+
+<div id="cropModal" class="modal">
+  <div class="modal-content">
+    <h3>Adjust your photo</h3>
+    <img id="cropImage" src="" alt="Crop Preview">
+    <div class="modal-btns">
+      <button id="cropCancel">Cancel</button>
+      <button id="cropSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<script>
+const nameEl=document.getElementById("username"),nameInput=document.getElementById("profileName"),emailInput=document.getElementById("profileEmail"),gender=document.getElementById("profileGender"),dob=document.getElementById("profileDOB"),address=document.getElementById("profileAddress"),pincode=document.getElementById("profilePincode"),photo=document.getElementById("photoPreview"),profileImg=document.getElementById("profileImg");
+const totalOrdersEl=document.getElementById("totalOrders"),walletEl=document.getElementById("wallet"),pointsEl=document.getElementById("points");
+
+/* === Load user === */
+const currentUser = localStorage.getItem("tufoodies_user") || "Guest";
+const currentEmail = localStorage.getItem("tufoodies_email");
+
+nameEl.textContent = currentUser;
+nameInput.value = currentUser;
+emailInput.value = currentEmail || "user@example.com";
+
+// User-specific keys
+const PHOTO_KEY = currentEmail ? `tufoodies_photo_${currentEmail}` : "tufoodies_photo";
+const ORDERS_KEY = currentEmail ? `tu_orders_${currentEmail}` : "tu_orders";
+const FAV_KEY = currentEmail ? `tu_favorites_${currentEmail}` : "tu_favorites";
+
+photo.src = localStorage.getItem(PHOTO_KEY) || photo.src;
+profileImg.src = localStorage.getItem(PHOTO_KEY) || profileImg.src;
+
+/* === Dashboard Sync with Orders === */
+function updateDashboard(){
+  const orders=JSON.parse(localStorage.getItem(ORDERS_KEY)||"[]");
+  const totalOrders=orders.length;
+  const totalSpent=orders.reduce((a,b)=>a+b.total,0);
+  const points=Math.floor(totalSpent/10);
+  totalOrdersEl.textContent=totalOrders;
+  walletEl.textContent="₹ "+(1000-totalSpent); 
+  pointsEl.textContent=points;
+}
+updateDashboard();
+window.addEventListener("storage",e=>{if([ORDERS_KEY].includes(e.key))updateDashboard();});
+
+/* === Favorites === */
+function loadFavorites(){
+  const favContainer=document.getElementById("favContainer"),noFavs=document.getElementById("noFavs");
+  const favorites=JSON.parse(localStorage.getItem(FAV_KEY)||"[]");
+  favContainer.innerHTML="";
+  if(!favorites.length){noFavs.style.display="block";return;}
+  noFavs.style.display="none";
+  
+  // Updated items list matching order.html
+  const allItems = [
+    {id:'1', name:'Sweet Lassi', cat:'beverages', price:40, img:'https://www.indianveggiedelight.com/wp-content/uploads/2023/01/sweet-lassi-recipe-featured.jpg', outlet:'Essentials', type:'veg'},
+    {id:'2', name:'Puri Bhaji', cat:'breakfast', price:70, img:'https://cdn.cdnparenting.com/articles/2020/02/26144721/PURI-BHAJI-RECIPE-1024x700.webp', outlet:'Gobin Hotel', type:'veg'},
+    {id:'3', name:'Chicken Chowmein', cat:'fastfood', price:80, img:'https://www.onceuponachef.com/images/2023/06/Chicken-Chow-Mein-Hero-7-scaled.jpg', outlet:'Spice Delight', type:'nonveg'},
+    {id:'4', name:'Chicken Curry', cat:'nonveg', price:150, img:'https://www.funfoodfrolic.com/wp-content/uploads/2020/09/Chicken-Curry-Thumbnail-1024x1024.jpg', outlet:'VRL', type:'nonveg'},
+    {id:'5', name:'Paneer Butter Masala', cat:'veg', price:180, img:'https://www.cubesnjuliennes.com/wp-content/uploads/2019/03/Easy-Butter-Paneer-Masala-Recipe.jpg', outlet:'Vinayak', type:'veg'},
+    {id:'6', name:'Chicken Thali', cat:'combos', price:160, img:'https://img.freepik.com/premium-photo/special-chicken-thali-food-platter-consists-variety-veggieschicken-meat-lentilsrice-sweet-dish-snacks-etc-selective-focus_726363-556.jpg?w=2000', outlet:'Dur Jyoti', type:'nonveg'},
+    {id:'7', name:'Chicken Roll', cat:'assamese', price:80, img:'https://www.scrumptiously.com/wp-content/uploads/2024/06/ChickenKathiRoll.webp', outlet:'Varieties', type:'nonveg'},
+    {id:'8', name:'Chicken Fried Rice', cat:'rice', price:120, img:'https://www.funfoodfrolic.com/wp-content/uploads/2021/10/Fried-Rice-Blog-Thumbnail.jpg', outlet:'Cafeteria', type:'nonveg'},
+    {id:'9', name:'Chicken Momo', cat:'fastfood', price:60, img:'https://jslight.com.np/wp-content/uploads/2022/06/momo.jpg', outlet:'Chetry Hotel', type:'nonveg'},
+    {id:'10', name:'Paratha', cat:'breakfast', price:40, img:'https://www.whiskaffair.com/wp-content/uploads/2020/06/Lachha-Paratha-2-1.jpg', outlet:'Shuruvaat', type:'veg'}
+  ];
+
+  const favItems=allItems.filter(i=>favorites.includes(i.id));
+  favItems.forEach(it=>{
+    const card=document.createElement("div");
+    card.className="order-card";
+    card.innerHTML=`<img src="${it.img}" alt=""><div class="order-info"><h4>${it.name}</h4><p style="color:#e63946;font-weight:600;">₹${it.price}</p><small>${it.outlet}</small></div><div class="order-actions"><button class="track-btn" onclick="removeFav('${it.id}')">Remove</button></div>`;
+    favContainer.appendChild(card);
+  });
+}
+function removeFav(id){
+  let favorites=JSON.parse(localStorage.getItem(FAV_KEY)||"[]");
+  favorites=favorites.filter(f=>f!==id);
+  localStorage.setItem(FAV_KEY,JSON.stringify(favorites));
+  loadFavorites();
+}
+window.addEventListener("storage",e=>{if(e.key===FAV_KEY)loadFavorites();});
+
+/* === Cropper === */
+const modal=document.getElementById("cropModal"),cropImg=document.getElementById("cropImage"),input=document.getElementById("photoInput");let cropper;
+document.getElementById("changePhotoBtn").onclick=()=>input.click();
+input.addEventListener("change",e=>{
+  const file=e.target.files[0];
+  if(file){
+    const reader=new FileReader();
+    reader.onload=evt=>{
+      cropImg.src=evt.target.result;
+      modal.style.display="flex";
+      if(cropper)cropper.destroy();
+      cropper=new Cropper(cropImg,{aspectRatio:1,viewMode:1,movable:true,zoomable:true,background:false});
+    };
+    reader.readAsDataURL(file);
+  }
+});
+document.getElementById("cropSave").onclick=()=>{
+  const canvas=cropper.getCroppedCanvas({width:200,height:200});
+  const croppedData=canvas.toDataURL("image/png");
+  photo.src=croppedData;
+  profileImg.src=croppedData;
+  localStorage.setItem(PHOTO_KEY,croppedData);
+  modal.style.display="none";
+  cropper.destroy();
+};
+document.getElementById("cropCancel").onclick=()=>{modal.style.display="none";if(cropper)cropper.destroy();};
+
+/* === Edit Profile === */
+document.getElementById("editUsername").onclick=()=>{nameInput.disabled=!nameInput.disabled;};
+document.getElementById("saveProfile").onclick=()=>{
+  localStorage.setItem("tufoodies_user",nameInput.value);
+  nameEl.textContent=nameInput.value;
+  alert("✅ Profile updated successfully!");
+};
+
+/* === Navigation === */
+const menuItems=document.querySelectorAll("#menu li[data-page]");
+menuItems.forEach(i=>{
+  i.addEventListener("click",()=>{
+    menuItems.forEach(m=>m.classList.remove("active"));
+    i.classList.add("active");
+    document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+    document.getElementById(i.dataset.page).classList.add("active");
+    if(i.dataset.page==="favorites")loadFavorites();
+  });
+});
+document.getElementById("openProfile").onclick=(e)=>{
+  e.preventDefault();
+  document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+  document.getElementById("profile").classList.add("active");
+  document.getElementById("userDropdown").style.display="none";
+};
+
+/* === Dropdown === */
+const dropdown=document.getElementById("userDropdown");
+profileImg.onclick=()=>dropdown.style.display=dropdown.style.display==="flex"?"none":"flex";
+document.addEventListener("click",e=>{if(!profileImg.contains(e.target)&&!dropdown.contains(e.target))dropdown.style.display="none";});
+
+/* === Dark Mode === */
+const body=document.body,themeToggle=document.getElementById("themeToggle");
+if(localStorage.getItem("darkMode")==="true")body.classList.add("dark-mode");
+themeToggle.onclick=()=>{body.classList.toggle("dark-mode");localStorage.setItem("darkMode",body.classList.contains("dark-mode"));};
+
+/* === Logout === */
+document.getElementById("logoutBtn").onclick=document.getElementById("logoutBtn2").onclick=()=>{
+  // Only remove session data, keep user data!
+  localStorage.removeItem("tufoodies_user");
+  localStorage.removeItem("tufoodies_email");
+  window.location.href="signin.html";
+};
+
+/* === Initial load === */
+loadFavorites();
+
+/* === Render Orders === */
+function renderOrders() {
+  const ordersList = document.getElementById("ordersList");
+  const orders = JSON.parse(localStorage.getItem(ORDERS_KEY) || "[]");
+  
+  if (orders.length === 0) {
+    ordersList.innerHTML = '<p style="color:#777;text-align:center;">No orders yet.</p>';
+    return;
+  }
+
+  ordersList.innerHTML = orders.map(order => `
+    <div class="order-card" style="display:block;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;">
+        <strong>${order.id}</strong>
+        <span style="color:#777;font-size:0.85rem;">${order.date}</span>
+      </div>
+      <div style="margin-bottom:0.5rem;">
+        ${order.items.map(item => `
+          <div style="display:flex;justify-content:space-between;font-size:0.9rem;">
+            <span>${item.qty}x ${item.name}</span>
+            <span>₹${item.price * item.qty}</span>
+          </div>
+        `).join('')}
+      </div>
+      <div style="border-top:1px solid #eee;padding-top:0.5rem;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-weight:600;color:#e63946;">Total: ₹${order.total}</span>
+        <span style="background:#e6f7e6;color:#2e7d32;padding:2px 8px;border-radius:4px;font-size:0.8rem;font-weight:600;">${order.status}</span>
+      </div>
+    </div>
+  `).join('');
+}
+renderOrders();
+</script>
+</body>
+</html>

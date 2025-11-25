@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Event Scheduler - College Portal</title>
+  <style>
+    body {
+      background: #f4f7fb;
+      font-family: Arial, sans-serif;
+    }
+    .schedule-container {
+      width: 85%;
+      max-width: 900px;
+      margin: 40px auto;
+      background: #fff;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      color: #004aad;
+      margin-bottom: 15px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: left;
+      font-size: 14px;
+    }
+    th {
+      background: #004aad;
+      color: white;
+    }
+    tr:hover {
+      background: #f1f7ff;
+    }
+    button {
+      background: #004aad;
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 15px;
+    }
+    button:hover {
+      background: #0077ff;
+    }
+    .btn-container {
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="schedule-container">
+    <h2>📅 Upcoming Academic Calendar Events - Autumn 2025</h2>
+    <p style="text-align:center; color:#333;">Tezpur University, School of Engineering</p>
+
+    <table id="calendarTable">
+      <thead>
+        <tr>
+          <th>Select</th>
+          <th>Date(s)</th>
+          <th>Event</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Events will be dynamically inserted -->
+      </tbody>
+    </table>
+
+    <div class="btn-container">
+      <button id="setReminderBtn">Set Reminder for Selected</button>
+    </div>
+  </div>
+
+  <script>
+    // Academic events data (with start & end dates)
+    const events = [
+      { name: "Admission Period", start: "2025-07-21", end: "2025-09-03", desc: "Admission of B.Tech. and Dual Degree B.Tech-MBA students through BSSC, JOSAA, CSAB, CUET" },
+      { name: "Physical Reporting", start: "2025-09-01", end: "2025-09-04", desc: "Physical Reporting, Course Registration & Mentor Allotment" },
+      { name: "Induction Programme", start: "2025-09-05", end: "2025-09-19", desc: "B.Tech. Induction Programme" },
+      { name: "Commencement of Classes", start: "2025-09-22", end: "2025-09-22", desc: "Commencement of Classes" },
+      { name: "Mid-Semester Recess", start: "2025-09-29", end: "2025-10-03", desc: "Mid-Semester Recess" },
+      { name: "Sessional Test I", start: "2025-10-21", end: "2025-10-21", desc: "Completion of Sessional Test I" },
+      { name: "Mid-Semester Exam", start: "2025-11-07", end: "2025-11-14", desc: "Mid-Semester Examination" },
+      { name: "Sessional Test II", start: "2025-12-12", end: "2025-12-12", desc: "Completion of Sessional Test II" },
+      { name: "Winter Vacation", start: "2026-01-01", end: "2026-01-15", desc: "Winter Vacation" },
+      { name: "Silpi Divas", start: "2026-01-16", end: "2026-01-16", desc: "Silpi Divas in remembrance of Rupkonwar Jyoti Prasad Agarwala" },
+      { name: "Feedback Collection", start: "2026-01-16", end: "2026-01-16", desc: "Collection of Students’ Feedback" },
+      { name: "Foundation Day", start: "2026-01-21", end: "2026-01-21", desc: "University Foundation Day" },
+      { name: "End-Semester Exam", start: "2026-01-22", end: "2026-01-30", desc: "End-Semester Examination" },
+      { name: "Grade Submission", start: "2026-02-10", end: "2026-02-10", desc: "Last Date for Submission of Grades" },
+      { name: "Result Declaration", start: "2026-02-17", end: "2026-02-17", desc: "Declaration of Results for Autumn 2025 Semester" }
+    ];
+
+    const tableBody = document.querySelector('#calendarTable tbody');
+    const today = new Date();
+
+    // Populate only upcoming events
+    events.forEach(event => {
+      const endDate = new Date(event.end);
+      if (endDate >= today) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><input type="checkbox" value="${event.name}"></td>
+          <td>${formatDate(event.start)}${event.start !== event.end ? ' – ' + formatDate(event.end) : ''}</td>
+          <td>${event.desc}</td>
+        `;
+        tableBody.appendChild(row);
+      }
+    });
+
+    // Format YYYY-MM-DD to DD MMM YYYY
+    function formatDate(dateStr) {
+      const options = { year: 'numeric', month: 'short', day: 'numeric' };
+      return new Date(dateStr).toLocaleDateString('en-GB', options);
+    }
+
+    // Save selected reminders
+    const reminderBtn = document.getElementById('setReminderBtn');
+    reminderBtn.addEventListener('click', () => {
+      const selected = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+      if (selected.length === 0) {
+        alert("Please select at least one event for reminder or booking.");
+        return;
+      }
+      localStorage.setItem('selectedEvents', JSON.stringify(selected));
+      alert("✅ Reminders set for:\n" + selected.join("\n"));
+    });
+  </script>
+</body>
+</html>
